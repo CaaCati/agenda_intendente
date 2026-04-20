@@ -141,7 +141,7 @@
   <div class="header-inner">
     <div class="brand">
       <div class="brand-title">Agenda del Intendente</div>
-      <div class="brand-sub">Sistema de Gestión Municipal</div>
+      <div class="brand-sub">Municipalidad de Caá Catí</div>
     </div>
     <div class="header-right">
       <div id="status-dot"></div>
@@ -165,10 +165,12 @@
 </footer>
 
 <script>
-const SHEET_ID_KEY = 'agenda_sheet_id';
-const SHEET_GID_KEY = 'agenda_sheet_gid';
-let SHEET_ID = localStorage.getItem(SHEET_ID_KEY) || '';
-let SHEET_GID = localStorage.getItem(SHEET_GID_KEY) || '0';
+// ─── CONFIGURACIÓN ───────────────────────────────────────────────
+// Pegá el ID de tu Google Sheet aquí (la parte larga de la URL)
+const SHEET_ID = '1HOqEYf9-CQRpV5I12LCleKriYFQ0CaLBVL7w_QwTcTI';
+// Si la hoja es la segunda/tercera pestaña, cambiá el gid (por defecto 0 = primera pestaña)
+const SHEET_GID = '0';
+// ─────────────────────────────────────────────────────────────────
 
 const DIAS   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -249,14 +251,24 @@ function csvUrl(id) {
 }
 
 async function loadData() {
-  if (!SHEET_ID) { renderSetup(); return; }
+  if (!SHEET_ID || SHEET_ID === 'TU_SHEET_ID_ACÁ') {
+    document.getElementById('app').innerHTML = `
+      <div class="state-msg">
+        <div class="icon">⚙️</div>
+        <p>Falta configurar el Sheet ID.<br>
+        Abrí el archivo <code>agenda-intendente.html</code>, buscá la línea<br>
+        <code>const SHEET_ID = 'TU_SHEET_ID_ACÁ';</code><br>
+        y reemplazá el texto por el ID real de tu Google Sheet.</p>
+      </div>`;
+    return;
+  }
   setStatus('loading');
   try {
     const res = await fetch(csvUrl(SHEET_ID), { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
     const rows = parseCSV(text);
-    setStatus('ok', rows.length + ' reuniones');
+    setStatus('ok', rows.length + (rows.length === 1 ? ' reunión' : ' reuniones'));
     renderAgenda(rows);
     document.getElementById('last-update').textContent =
       'Actualizado ' + new Date().toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
@@ -275,38 +287,6 @@ function setStatus(state, msg) {
   if (state === 'err') { dot.classList.add('err'); txt.textContent = msg || 'Error'; }
 }
 
-function renderSetup() {
-  document.getElementById('app').innerHTML = `
-    <div class="config-banner">
-      <div class="icon">🔗</div>
-      <div>
-        <h3>Conectar con Google Sheets</h3>
-        <p>
-          Pegá el <strong>ID de tu Google Sheet</strong> para cargar la agenda.<br>
-          El ID es la parte larga de la URL:<br>
-          <code>docs.google.com/spreadsheets/d/<strong>ID_ACÁ</strong>/edit</code><br><br>
-          El Sheet debe estar <strong>compartido públicamente</strong> (o "Cualquiera con el enlace") y tener las columnas:<br>
-          <code>Fecha</code> &nbsp;|&nbsp; <code>Hora</code> &nbsp;|&nbsp; <code>Lugar</code> &nbsp;|&nbsp; <code>Motivo</code>
-        </p>
-        <div class="input-row">
-          <input type="text" id="sheet-id-input" placeholder="Pegá el ID o la URL completa del Sheet" />
-          <button onclick="saveSheetId()">Guardar y cargar</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-function saveSheetId() {
-  const val = document.getElementById('sheet-id-input').value.trim();
-  if (!val) return;
-  const matchId = val.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  SHEET_ID = matchId ? matchId[1] : val;
-  const matchGid = val.match(/[#&?]gid=(\d+)/);
-  SHEET_GID = matchGid ? matchGid[1] : '0';
-  localStorage.setItem(SHEET_ID_KEY, SHEET_ID);
-  localStorage.setItem(SHEET_GID_KEY, SHEET_GID);
-  loadData();
-}
 
 function renderAgenda(rows) {
   const app = document.getElementById('app');
