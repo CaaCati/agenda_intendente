@@ -39,7 +39,7 @@
     display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
   }
   .brand-title {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: 'Playfair Display', serif;
     font-size: 1.55rem; font-weight: 600; letter-spacing: 0.04em; color: var(--text); line-height: 1;
   }
   .brand-sub {
@@ -72,7 +72,7 @@
     border-radius: 8px; padding: 20px 24px; margin-bottom: 40px; display: flex; gap: 20px; align-items: flex-start;
   }
   .config-banner .icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 1px; }
-  .config-banner h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .config-banner h3 { font-family: 'Spectral', serif; font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
   .config-banner p { font-size: 0.8rem; color: var(--muted2); line-height: 1.7; }
   .config-banner code { background: var(--bg3); color: var(--accent2); padding: 1px 6px; border-radius: 3px; font-size: 0.75rem; }
   .input-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
@@ -310,10 +310,10 @@ async function loadData() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
     const rows = parseCSV(text);
-    setStatus('ok', rows.length + (rows.length === 1 ? ' reunión' : ' reuniones'));
+    setStatus('ok', 'Conectado');
     renderAgenda(rows);
     document.getElementById('last-update').textContent =
-      'Actualizado ' + new Date().toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
+      'Actualizado ' + new Date().toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit', hour12: false });
   } catch(e) {
     setStatus('err', 'Error al cargar');
     renderError(e);
