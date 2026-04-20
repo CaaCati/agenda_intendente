@@ -166,7 +166,9 @@
 
 <script>
 const SHEET_ID_KEY = 'agenda_sheet_id';
+const SHEET_GID_KEY = 'agenda_sheet_gid';
 let SHEET_ID = localStorage.getItem(SHEET_ID_KEY) || '';
+let SHEET_GID = localStorage.getItem(SHEET_GID_KEY) || '0';
 
 const DIAS   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const MESES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -174,16 +176,24 @@ const MESES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto
 function parseFecha(str) {
   str = str.trim();
   if (!str) return null;
-  let d, m, y;
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
-    [d, m, y] = str.split('/').map(Number);
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-    [y, m, d] = str.split('-').map(Number);
-  } else {
-    const t = new Date(str);
-    return isNaN(t) ? null : t;
+  // d/m/yyyy o dd/mm/yyyy — Google Sheets exporta sin cero inicial
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+    const [d, m, y] = str.split('/').map(Number);
+    return new Date(y, m - 1, d);
   }
-  return new Date(y, m - 1, d);
+  // yyyy-mm-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const [y, m, d] = str.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  // Número serial de Sheets (días desde 1899-12-30)
+  if (/^\d{4,6}$/.test(str)) {
+    const base = new Date(1899, 11, 30);
+    base.setDate(base.getDate() + Number(str));
+    return base;
+  }
+  const t = new Date(str);
+  return isNaN(t) ? null : t;
 }
 
 function fechaKey(dt) {
@@ -235,7 +245,7 @@ function splitCSVLine(line) {
 }
 
 function csvUrl(id) {
-  return 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&gid=0';
+  return 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=csv&gid=' + SHEET_GID;
 }
 
 async function loadData() {
@@ -289,9 +299,12 @@ function renderSetup() {
 function saveSheetId() {
   const val = document.getElementById('sheet-id-input').value.trim();
   if (!val) return;
-  const match = val.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  SHEET_ID = match ? match[1] : val;
+  const matchId = val.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  SHEET_ID = matchId ? matchId[1] : val;
+  const matchGid = val.match(/[#&?]gid=(\d+)/);
+  SHEET_GID = matchGid ? matchGid[1] : '0';
   localStorage.setItem(SHEET_ID_KEY, SHEET_ID);
+  localStorage.setItem(SHEET_GID_KEY, SHEET_GID);
   loadData();
 }
 
