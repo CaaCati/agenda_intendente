@@ -173,6 +173,29 @@
     .card-hora-label, .card-lugar { color: #555; }
     .day-name { color: black; }
   }
+  /* Card con múltiples horarios */
+  .card.multi-hora {
+    grid-template-columns: 1fr;
+  }
+  .card.multi-hora .card-hora-col {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 14px 20px;
+    border-right: none;
+    border-bottom: 1px solid rgba(126,184,164,0.15);
+    background: rgba(126,184,164,0.05);
+  }
+  .card.multi-hora .card-hora-col::after { display: none; }
+  .card.multi-hora .card-hora-num {
+    font-size: 0.8rem;
+    color: rgba(168,212,196,0.75);
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+  .card.multi-hora .card-hora-label { display: none; }
+
   @media (max-width: 600px) {
     .header-inner { padding: 16px; }
     main { padding: 28px 16px 60px; }
@@ -355,7 +378,22 @@ function renderAgenda(rows) {
     html += '<div class="day-block" style="animation-delay:' + delay + 'ms">';
     html += '<div class="day-heading"><span class="day-name">' + DIAS[dt.getDay()] + '</span><span class="day-num">' + dt.getDate() + ' de ' + MESES[dt.getMonth()] + ' ' + dt.getFullYear() + '</span><span class="day-line"></span></div>';
     for (const r of items) {
-      html += '<div class="card"><div class="card-hora-col"><div class="card-hora-num">' + esc(r.hora) + '</div><div class="card-hora-label">hs</div></div><div class="card-body"><div class="card-motivo">' + esc(r.motivo) + '</div>' + (r.lugar ? '<div class="card-lugar">' + esc(r.lugar) + '</div>' : '') + '</div></div>';
+      const horaText = (r.hora || '').trim();
+      // Es multi-hora si tiene saltos de línea o múltiples segmentos separados por coma/punto y coma
+      const isMulti = /[\n\r]/.test(horaText) || (horaText.split(/[,;]/).length > 2);
+      if (isMulti) {
+        // Normalizar separadores a salto de línea para mostrar bien
+        const horaFormatted = horaText.replace(/[,;]/g, '\n').replace(/\n{2,}/g, '\n').trim();
+        html += '<div class="card multi-hora">'
+          + '<div class="card-hora-col"><div class="card-hora-num">🕐 Varios horarios</div></div>'
+          + '<div class="card-body">'
+          + '<div class="card-motivo">' + esc(r.motivo) + '</div>'
+          + '<div class="card-lugar" style="white-space:pre-line; margin-top:4px; font-size:0.78rem; color: rgba(168,212,196,0.75); display:block;">' + esc(horaFormatted) + '</div>'
+          + (r.lugar ? '<div class="card-lugar">' + esc(r.lugar) + '</div>' : '')
+          + '</div></div>';
+      } else {
+        html += '<div class="card"><div class="card-hora-col"><div class="card-hora-num">' + esc(r.hora) + '</div><div class="card-hora-label">hs</div></div><div class="card-body"><div class="card-motivo">' + esc(r.motivo) + '</div>' + (r.lugar ? '<div class="card-lugar">' + esc(r.lugar) + '</div>' : '') + '</div></div>';
+      }
     }
     html += '</div>';
     delay += 60;
