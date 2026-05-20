@@ -739,7 +739,6 @@ function renderAgenda(rows) {
         horariosHtml += '</div>';
         
         html += '<div class="card multi-hora">'
-          + '<div class="card-hora-section"><span class="card-hora-icon">⏰</span><span class="card-hora-label">' + horarios.length + ' horarios</span></div>'
           + '<div class="card-body">'
           + '<div class="card-motivo">' + esc(r.motivo) + '</div>'
           + horariosHtml
@@ -747,9 +746,9 @@ function renderAgenda(rows) {
           + '</div></div>';
       } else {
         html += '<div class="card">'
-          + '<div class="card-hora-section"><span class="card-hora-icon">🕐</span><div><div class="card-hora-num">' + esc(r.hora) + '</div><div class="card-hora-label">hs</div></div></div>'
           + '<div class="card-body">'
           + '<div class="card-motivo">' + esc(r.motivo) + '</div>'
+          + '<div class="card-hora-section"><span class="card-hora-icon">🕐</span><div><div class="card-hora-num">' + esc(r.hora) + '</div><div class="card-hora-label">hs</div></div></div>'
           + (r.lugar ? '<div class="card-lugar">' + esc(r.lugar) + '</div>' : '')
           + '</div></div>';
       }
