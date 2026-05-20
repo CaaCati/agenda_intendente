@@ -727,11 +727,11 @@ function renderAgenda(rows) {
     html += '<div class="day-heading"><span class="day-name">' + DIAS[dt.getDay()] + '</span><span class="day-num">' + dt.getDate() + ' de ' + MESES[dt.getMonth()] + '</span><span class="day-line"></span></div>';
     for (const r of items) {
       const horaText = (r.hora || '').trim();
-      const isMulti = /[\n\r]/.test(horaText) || (horaText.split(/[,;]/).length > 2);
+      const isMulti = /[\n\r,;]/.test(horaText);
       
       if (isMulti) {
         // Normalizar múltiples horarios
-        const horarios = horaText.split(/[,;]/).map(h => h.trim()).filter(h => h);
+        const horarios = horaText.split(/[,;\n\r]+/).map(h => h.trim()).filter(h => h);
         let horariosHtml = '<div class="card-horarios-list">';
         for (const h of horarios) {
           horariosHtml += '<div class="card-horario-item">' + esc(h) + '</div>';
@@ -739,7 +739,7 @@ function renderAgenda(rows) {
         horariosHtml += '</div>';
         
         html += '<div class="card multi-hora">'
-          + '<div class="card-hora-section"><span class="card-hora-icon">⏰</span><span class="card-hora-label">Múltiples horarios</span></div>'
+          + '<div class="card-hora-section"><span class="card-hora-icon">⏰</span><span class="card-hora-label">' + horarios.length + ' horarios</span></div>'
           + '<div class="card-body">'
           + '<div class="card-motivo">' + esc(r.motivo) + '</div>'
           + horariosHtml
