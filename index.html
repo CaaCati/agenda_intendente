@@ -652,8 +652,17 @@ function splitCSVLine(line) {
   const result = []; let cur = '', inQ = false;
   for (let i = 0; i < line.length; i++) {
     const c = line[i];
-    if (c === '"') { inQ = !inQ; continue; }
-    if (c === ',' && !inQ) { result.push(cur); cur = ''; continue; }
+    if (inQ) {
+      if (c === '"') {
+        if (line[i + 1] === '"') { cur += '"'; i++; } // comilla escapada ("") dentro de campo entre comillas
+        else { inQ = false; } // cierre real del campo
+      } else {
+        cur += c;
+      }
+      continue;
+    }
+    if (c === '"') { inQ = true; continue; }
+    if (c === ',') { result.push(cur); cur = ''; continue; }
     cur += c;
   }
   result.push(cur);
